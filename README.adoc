@@ -1,0 +1,82 @@
+= Gradle Java Toolchains Plugin
+
+> *DISCLAIMER* this plugin is a playground for prototyping purpose, it is subject to drastic changes and rely on Gradle internals
+
+
+== Usage
+
+The plugin isn't published, but you can clone, build and publish it locally to a temporary repo
+
+```
+./gradlew publishToBuildRepository
+```
+
+It'll be deployed in `./gradle-java-toolchains-plugin/build/repository`
+
+Then add the following to your `settings.gradle(.kts)`:
+
+```kotlin
+pluginManagement {
+    repositories {
+        maven { url = uri("path/to/gradle-java-toolchains-plugin/build/repository") }
+        gradlePluginPortal()
+    }
+}
+```
+
+Then, simply request the plugin in a project script:
+
+```kotlin
+plugins {
+    id("net.grdev.java-toolchains) version "0"
+}
+```
+
+
+== Register local Java toolchains
+
+```kotlin
+javaInstallations {
+    val java10 by registering {
+        // the plugin will validate that the given `javaHome` is a Java 10
+        javaHome.set(<localDirectory>)
+        version.set(JavaVersion.VERSION_1_10)
+    }
+    val java12 by registering {
+        // no `javaHome` is set, the plugin will try to discover a local Java 12
+        version.set(JavaVersion.VERSION_12)
+    }
+}
+```
+
+* `./gradlew validateJavaToolchains` or `./gradlew vJ` for short
+* `gradle {}`, `JAVA_HOME {}`
+
+
+== Configure a build to use Java toolchains
+
+* compile, javadoc, jar tasks
+* test tasks
+* java exec tasks
+
+```kotlin
+val java12 by javaToolchains.registering {
+    version.set(JavaVersion.VERSION_12)
+}
+tasks {
+    typed<JavaCompile> {
+        java12.get().configure(this)
+    }
+}
+```
+
+== Discover local Java toolchains
+
+* only about finding candidate local paths
+* default behavior, different per os
+* can be customized `javaToolchainsDiscovery {}`
+* what about `sdk install java x.y.z /path/to/jvm/install` ?
+
+== Multi-project builds
+
+TBD

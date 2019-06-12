@@ -1,0 +1,32 @@
+plugins {
+    id("java")
+    id("net.grdev.java-toolchains") version "0"
+}
+
+
+// Lazy configuration
+
+def java12 = javaToolchains.register("java12") {
+    version = JavaVersion.VERSION_12
+}
+
+tasks.register("javaExec", JavaExec) {
+    java12.get().configure(delegate)
+    classpath = files(sourceSets.main.output)
+    main = "org.example.Main"
+    args = ["javaExec"]
+}
+
+
+// Eager configuration
+
+def eagerJava10 = javaToolchains.create("eagerJava10") {
+    version = JavaVersion.VERSION_1_10
+}
+
+task("eagerJavaExec", type: JavaExec) {
+    eagerJava10.configure(delegate)
+    classpath = files(sourceSets.main.output)
+    main = "org.example.Main"
+    args = ["eagerJavaExec"]
+}

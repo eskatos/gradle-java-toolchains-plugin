@@ -1,0 +1,52 @@
+plugins {
+    id("java")
+    id("net.grdev.java-toolchains") version "0"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation "junit:junit:4.12"
+}
+
+
+def java8 = javaToolchains.register("java8") {
+    version = JavaVersion.VERSION_1_8
+}
+
+def java10 = javaToolchains.register("java10") {
+    version = JavaVersion.VERSION_1_10
+}
+
+def java12 = javaToolchains.register("java12") {
+    version = JavaVersion.VERSION_12
+}
+
+
+test {
+    java8.get().configure(delegate)
+}
+
+[java10, java12].each { toolchain ->
+    tasks.register("test${toolchain.name.capitalize()}", Test) {
+        testClassesDirs = test.testClassesDirs
+        classpath = test.classpath
+        toolchain.get().configure(delegate)
+    }
+}
+
+
+def testTasks = tasks.withType(Test)
+
+check.dependsOn(testTasks)
+
+testTasks.configureEach {
+    testLogging.showStandardStreams = true
+}
